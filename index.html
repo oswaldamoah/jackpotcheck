@@ -7,6 +7,9 @@
     <link rel="icon" type="image/x-icon" href="https://cdn.glitch.global/f1a0f6c8-b9a8-4e45-ae11-9983dc9b98dd/logo.png?v=1744666840347">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn.glitch.global/f1a0f6c8-b9a8-4e45-ae11-9983dc9b98dd/logo.png">
+    <meta name="theme-color" content="#6a11cb">
     <style>
         :root {
             --home-color: #28a745;
@@ -556,6 +559,12 @@
             // Expose functions to global scope for HTML event handlers
             window.toggleStar = toggleStar;
             window.removeFilter = removeFilter;
+        
+        if ('serviceWorker' in navigator) {
+           window.addEventListener('load', () => {
+              navigator.serviceWorker.register('/sw.js');
+                                               });
+                                                    }
     </script>
 </body>
 </html>
