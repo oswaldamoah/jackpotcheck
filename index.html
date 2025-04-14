@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JackpotCheck | Simplify Predictions</title>
+    <link rel="icon" type="image/x-icon" href="https://cdn.glitch.global/f1a0f6c8-b9a8-4e45-ae11-9983dc9b98dd/logo.png?v=1744666840347">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --home-color: #28a745;
+            --away-color: #dc3545;
+            --draw-color: #ffc107;
+            --primary-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        }
+        
+        /* Modern Hero Section */
+        .hero {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 3rem 0;
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+        }
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .hero-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .hero-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            width: 70px;
+            height: 70px;
+            line-height: 70px;
+            border-radius: 50%;
+            text-align: center;
+        }
+        
+        /* Rest of your existing styles */
+        .match-name-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .possibility-card {
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 20px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .possibility-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .outcome-text {
+            font-family: monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .H-text { color: var(--home-color); }
+        .A-text { color: var(--away-color); }
+        .D-text { color: var(--draw-color); }
+        .star-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 1.2rem;
+        }
+        .star-btn.starred {
+            color: #ffc107;
+        }
+        .match-cell {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 2px;
+            background-color: #f8f9fa;
+        }
+        .match-cell.H { color: var(--home-color); border: 2px solid var(--home-color); }
+        .match-cell.A { color: var(--away-color); border: 2px solid var(--away-color); }
+        .match-cell.D { color: var(--draw-color); border: 2px solid var(--draw-color); }
+        .nav-tabs .nav-link.active {
+            font-weight: bold;
+            border-bottom: 3px solid;
+            border-image: var(--primary-gradient) 1;
+        }
+        .tab-content {
+            padding: 15px 0;
+        }
+        .modal-outcome-sequence {
+            font-family: monospace;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+      .reset-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Modern Hero Section -->
+    <section class="hero text-center">
+        <div class="container">
+            <div class="hero-icon">
+                <i class="bi bi-stars"></i>
+            </div>
+            <h1 class="hero-title">JackPotCheck</h1>
+            <p class="hero-subtitle">Analyze all possible outcomes and discover winning patterns</p>
+        </div>
+    </section>
+
+    <div class="container py-2">
+        <!-- Match Names Input -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-pencil-square"></i> Name Your Matches</h5>
+                <div class="match-name-inputs" id="matchNamesContainer"></div>
+                <button class="btn btn-primary" id="saveNamesBtn">Save Match Names</button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-funnel"></i> Filters</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Filter by Match Outcome</label>
+                        <div class="input-group">
+                            <select class="form-select" id="matchSelect">
+                                <option value="">Select Match</option>
+                            </select>
+                            <select class="form-select" id="outcomeSelect">
+                                <option value="H">Home Win</option>
+                                <option value="A">Away Win</option>
+                                <option value="D">Draw</option>
+                            </select>
+                            <button class="btn btn-outline-primary" id="addFilterBtn">Add Filter</button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Quick Search</label>
+                        <input type="text" class="form-control" id="searchInput" 
+                               placeholder="E.g. HAD or ?D? (use ? for wildcard)" maxlength="12">
+                    </div>
+                </div>
+                <div id="activeFilters" class="mt-3"></div>
+            </div>
+        </div>
+
+        <!-- Results Tabs -->
+        <ul class="nav nav-tabs" id="resultsTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button">All Possibilities</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="starred-tab" data-bs-toggle="tab" data-bs-target="#starred" type="button">Starred</button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="resultsTabContent">
+            <div class="tab-pane fade show active" id="all" role="tabpanel">
+                <div class="card mt-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Found <span id="resultCount">0</span> possibilities</h5>
+                            <button class="btn btn-outline-secondary" id="exportBtn">
+                                <i class="bi bi-download"></i> Export
+                            </button>
+                        </div>
+                        <div id="resultsContainer" class="row"></div>
+                        <div id="loading" class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <div class="mt-2">Generating possibilities...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="starred" role="tabpanel">
+                <div class="card mt-0">
+                    <div class="card-body">
+                        <h5 class="mb-3">Starred Possibilities</h5>
+                        <div id="starredContainer" class="row"></div>
+                        <div id="noStarred" class="text-center py-5">
+                            <i class="bi bi-star" style="font-size: 3rem; color: #ffc107;"></i>
+                            <h5 class="mt-3">No starred possibilities</h5>
+                            <p>Click the star icon on any possibility to save it here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div class="modal fade" id="detailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Possibility Details 
+                        <span class="modal-outcome-sequence" id="modalOutcomeSequence"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modalDetails"></div>
+            </div>
+        </div>
+    </div>
+  <button class="btn btn-danger reset-btn" id="resetBtn" title="Reset All Data">
+        <i class="bi bi-arrow-counterclockwise"></i>
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // [Your existing JavaScript remains exactly the same]
+        document.addEventListener('DOMContentLoaded', () => {
+            const MATCH_COUNT = 12;
+            let allPossibilities = [];
+            let starred = JSON.parse(localStorage.getItem('starred')) || [];
+            let activeFilters = JSON.parse(localStorage.getItem('activeFilters')) || [];
+            let matchNames = JSON.parse(localStorage.getItem('matchNames')) || 
+                Array.from({length: MATCH_COUNT}, (_, i) => `Match ${i+1}`);
+            
+            // Initialize UI
+            initMatchNameInputs();
+            initMatchSelect();
+            generatePossibilities();
+            renderFilters();
+            updateResults();
+            renderStarred();
+
+            // Event Listeners
+            document.getElementById('saveNamesBtn').addEventListener('click', saveMatchNames);
+            document.getElementById('addFilterBtn').addEventListener('click', addFilter);
+            document.getElementById('searchInput').addEventListener('input', updateResults);
+            document.getElementById('exportBtn').addEventListener('click', exportResults);
+
+            function initMatchNameInputs() {
+                const container = document.getElementById('matchNamesContainer');
+                container.innerHTML = matchNames.map((name, i) => `
+                    <input type="text" class="form-control" data-index="${i}" 
+                           value="${name}" placeholder="Match ${i+1}">
+                `).join('');
+            }
+
+            function saveMatchNames() {
+                matchNames = Array.from(document.querySelectorAll('#matchNamesContainer input'))
+                                .map(input => input.value || `Match ${+input.dataset.index + 1}`);
+                localStorage.setItem('matchNames', JSON.stringify(matchNames));
+                initMatchSelect();
+                updateResults();
+            }
+
+            function initMatchSelect() {
+                const select = document.getElementById('matchSelect');
+                select.innerHTML = matchNames.map((name, i) => `
+                    <option value="${i}">${name}</option>
+                `).join('');
+            }
+
+            function generatePossibilities() {
+                const outcomes = ['H', 'A', 'D'];
+                const generate = (current) => {
+                    if (current.length === MATCH_COUNT) {
+                        allPossibilities.push(current);
+                        return;
+                    }
+                    outcomes.forEach(o => generate(current + o));
+                };
+                generate('');
+                document.getElementById('loading').style.display = 'none';
+            }
+
+            function updateResults() {
+                const searchPattern = document.getElementById('searchInput').value.toUpperCase();
+                let results = allPossibilities;
+
+                // Apply filters
+                results = results.filter(possibility => 
+                    activeFilters.every(({matchIndex, outcome}) => 
+                        possibility[matchIndex] === outcome
+                    ) &&
+                    (!searchPattern || matchesSearch(possibility, searchPattern))
+                );
+
+                renderResults(results);
+            }
+
+            function matchesSearch(possibility, pattern) {
+                return Array.from(pattern).every((char, i) => 
+                    i >= MATCH_COUNT || char === '?' || possibility[i] === char
+                );
+            }
+
+            function renderResults(results) {
+                const container = document.getElementById('resultsContainer');
+                const countElement = document.getElementById('resultCount');
+                countElement.textContent = results.length.toLocaleString();
+                
+                container.innerHTML = results.slice(0, 1000).map(possibility => `
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card possibility-card" data-possibility="${possibility}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="outcome-text">${possibility}</div>
+                                    <button class="star-btn ${starred.includes(possibility) ? 'starred' : ''}" 
+                                            onclick="toggleStar('${possibility}', this, event)">
+                                        <i class="bi ${starred.includes(possibility) ? 'bi-star-fill' : 'bi-star'}"></i>
+                                    </button>
+                                </div>
+                                <div class="d-flex flex-wrap">
+                                    ${Array.from(possibility).map((o, i) => `
+                                        <div class="match-cell ${o}" 
+                                             title="${matchNames[i]}: ${getOutcomeLabel(o, i)}">
+                                            ${o}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Add click handlers for details
+                document.querySelectorAll('.possibility-card').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('star-btn')) {
+                            showDetails(card.dataset.possibility);
+                        }
+                    });
+                });
+            }
+
+            function renderStarred() {
+                const container = document.getElementById('starredContainer');
+                const noStarred = document.getElementById('noStarred');
+                
+                if (starred.length === 0) {
+                    noStarred.style.display = 'block';
+                    container.innerHTML = '';
+                    return;
+                }
+                
+                noStarred.style.display = 'none';
+                container.innerHTML = starred.map(possibility => `
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card possibility-card" data-possibility="${possibility}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="outcome-text">${possibility}</div>
+                                    <button class="star-btn starred" 
+                                            onclick="toggleStar('${possibility}', this, event)">
+                                        <i class="bi bi-star-fill"></i>
+                                    </button>
+                                </div>
+                                <div class="d-flex flex-wrap">
+                                    ${Array.from(possibility).map((o, i) => `
+                                        <div class="match-cell ${o}" 
+                                             title="${matchNames[i]}: ${getOutcomeLabel(o, i)}">
+                                            ${o}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Add click handlers for details
+                document.querySelectorAll('#starredContainer .possibility-card').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('star-btn')) {
+                            showDetails(card.dataset.possibility);
+                        }
+                    });
+                });
+            }
+
+            function toggleStar(possibility, btn, event) {
+                event.stopPropagation();
+                const index = starred.indexOf(possibility);
+                if (index === -1) {
+                    starred.push(possibility);
+                } else {
+                    starred.splice(index, 1);
+                }
+                localStorage.setItem('starred', JSON.stringify(starred));
+                
+                // Update the button appearance
+                if (btn) {
+                    const isStarred = starred.includes(possibility);
+                    btn.classList.toggle('starred', isStarred);
+                    btn.innerHTML = `<i class="bi ${isStarred ? 'bi-star-fill' : 'bi-star'}"></i>`;
+                }
+                
+                // Update starred tab
+                renderStarred();
+            }
+
+            function showDetails(possibility) {
+                const modalDetails = document.getElementById('modalDetails');
+                const modalOutcomeSequence = document.getElementById('modalOutcomeSequence');
+                
+                // Set colored outcome sequence in modal title
+                modalOutcomeSequence.innerHTML = Array.from(possibility).map((o, i) => 
+                    `<span class="${o}-text">${o}</span>`
+                ).join('');
+                
+                // Set modal content
+                modalDetails.innerHTML = `
+                    <div class="row g-3">
+                        ${Array.from(possibility).map((o, i) => `
+                            <div class="col-12 col-md-6">
+                                <div class="fixture-outcome bg-light p-3 rounded">
+                                    <div class="text-muted small">${matchNames[i]}</div>
+                                    <div class="fw-bold ${o}-text">${getOutcomeLabel(o, i)}</div>
+                                    <div class="text-muted">(${o})</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                new bootstrap.Modal('#detailsModal').show();
+            }
+
+            function getOutcomeLabel(outcome, matchIndex) {
+                const matchName = matchNames[matchIndex];
+                const [home, away = 'Away'] = matchName.split(' vs ');
+                return {
+                    'H': `${home} Win`,
+                    'A': `${away} Win`,
+                    'D': 'Draw'
+                }[outcome];
+            }
+
+            function addFilter() {
+                const matchIndex = document.getElementById('matchSelect').value;
+                const outcome = document.getElementById('outcomeSelect').value;
+                if (matchIndex === '') return;
+
+                activeFilters.push({ matchIndex: parseInt(matchIndex), outcome });
+                localStorage.setItem('activeFilters', JSON.stringify(activeFilters));
+                renderFilters();
+                updateResults();
+            }
+
+            function renderFilters() {
+                const container = document.getElementById('activeFilters');
+                container.innerHTML = activeFilters.map(({matchIndex, outcome}) => `
+                    <div class="badge bg-light text-dark me-2">
+                        ${matchNames[matchIndex]}: ${getOutcomeLabel(outcome, matchIndex)}
+                        <i class="bi bi-x ms-1" onclick="removeFilter(${matchIndex}, '${outcome}')"></i>
+                    </div>
+                `).join('');
+            }
+
+            function removeFilter(matchIndex, outcome) {
+                activeFilters = activeFilters.filter(f => 
+                    !(f.matchIndex === matchIndex && f.outcome === outcome)
+                );
+                localStorage.setItem('activeFilters', JSON.stringify(activeFilters));
+                renderFilters();
+                updateResults();
+            }
+
+            function exportResults() {
+                const data = allPossibilities.map(p => ({
+                    possibility: p,
+                    ...countOutcomes(p)
+                }));
+                
+                const csv = [
+                    ['Possibility'].join(','),
+                    ...data.map(d => [d.possibility].join(','))
+                ].join('\n');
+                
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'possibilities.csv';
+                a.click();
+            }
+
+            function countOutcomes(possibility) {
+                return {
+                    H: (possibility.match(/H/g) || []).length,
+                    A: (possibility.match(/A/g) || []).length,
+                    D: (possibility.match(/D/g) || []).length
+                };
+            }
+          
+          
+
+            // Expose functions to global scope for HTML event handlers
+            window.toggleStar = toggleStar;
+            window.removeFilter = removeFilter;
+        });
+      
+       document.getElementById('resetBtn').addEventListener('click', () => {
+                if (confirm('Are you sure you want to reset all data? This will clear all your saved matches and starred possibilities.')) {
+                    // Clear all localStorage data
+                    localStorage.removeItem('starred');
+                    localStorage.removeItem('activeFilters');
+                    localStorage.removeItem('matchNames');
+                    
+                    // Reload the page to apply changes
+                    window.location.reload();
+                }
+            });
+
+            // Expose functions to global scope for HTML event handlers
+            window.toggleStar = toggleStar;
+            window.removeFilter = removeFilter;
+    </script>
+</body>
+</html>
