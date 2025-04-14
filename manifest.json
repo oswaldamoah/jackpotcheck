@@ -1,0 +1,21 @@
+{
+  "name": "JackpotCheck",
+  "short_name": "JackpotCheck",
+  "description": "Analyze all possible outcomes of 12-match predictions",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#6a11cb",
+  "theme_color": "#6a11cb",
+  "icons": [
+    {
+      "src": "https://cdn.glitch.global/f1a0f6c8-b9a8-4e45-ae11-9983dc9b98dd/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn.glitch.global/f1a0f6c8-b9a8-4e45-ae11-9983dc9b98dd/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
