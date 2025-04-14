@@ -1,5 +1,8 @@
 # JackpotCheck - Match Possibility Analyzer  
 
+
+I can create more web apps on pc now haahahahahahahahah in Rawlings' voice
+
 **A powerful tool for analyzing all possible outcomes of 12-match predictions.**  
 
 ## Features  
@@ -22,6 +25,7 @@
 4. Click any possibility to see detailed breakdown  
 
 The app efficiently handles all 531,441 possible combinations while providing a clean, user-friendly interface.  
+
 
 **Site Link:** [https://jackpotcheck.glitch.me/](https://jackpotcheck.glitch.me/)  
 
